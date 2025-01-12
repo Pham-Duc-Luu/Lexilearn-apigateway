@@ -1,0 +1,17 @@
+services:
+  userService:
+    baseUrl: "http://localhost:5002"
+    apiVersion: "api/v1"
+    ipv4PublicAddress: 0.0.0.0
+    apiKey: "7b872d36-32c5-4a38-91ea-61a831336eae"
+    timeout: 5s
+
+  imageService:
+    baseUrl: "http://localhost:5001"
+    apiKey: "imageServiceKey"
+    timeout: 10s
+
+global:
+  retryCount: 3
+  logLevel: "info"
+  port: "8080"
