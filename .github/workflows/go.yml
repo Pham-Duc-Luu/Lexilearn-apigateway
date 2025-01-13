@@ -22,6 +22,5 @@ jobs:
           echo "${{ secrets.CONFIG_YML_BASE64 }}" | base64 --decode > config.yml
       - name: Build
         run: go build -o main ./src/main.go
-
-      - name: Run
-        run: ./main
+      - name: run using pm2
+        run: pm2 start ./main --name FooBar
