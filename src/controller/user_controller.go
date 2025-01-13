@@ -2,7 +2,9 @@ package controller
 
 import (
 	"api-gateway/src/config"
+	"crypto/tls"
 	"io"
+	"log"
 	"net/http"
 	"time"
 
@@ -15,8 +17,8 @@ type UserController struct {
 
 func (uc *UserController) ProxyRequest(c *gin.Context) {
 	// Construct the target URL
-	targetURL := uc.ServiceConfig.BaseURL + "/" + uc.ServiceConfig.APIVersion + c.Param("proxyPath")
-
+	targetURL := uc.ServiceConfig.BaseURL + c.Param("proxyPath")
+	log.Println(targetURL)
 	// Create a new HTTP request
 	req, err := http.NewRequest(c.Request.Method, targetURL, c.Request.Body)
 	if err != nil {
@@ -32,7 +34,10 @@ func (uc *UserController) ProxyRequest(c *gin.Context) {
 	req.Header.Set("x-api-key", uc.ServiceConfig.APIKey)
 
 	// Send the request to the target service
-	client := &http.Client{Timeout: 5 * time.Second}
+	client := &http.Client{Timeout: 5 * time.Second,
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}}
 	resp, err := client.Do(req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to reach service"})
