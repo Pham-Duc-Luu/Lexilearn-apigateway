@@ -1,0 +1,68 @@
+server:
+  port: ${PORT}
+
+spring:
+  config:
+    import: optional:file:.env[.properties]
+
+  application:
+    name: api-gateway
+  main:
+    web-application-type: reactive
+  cloud:
+    config:
+      enabled: false
+    gateway:
+      routes:
+        - id: user-service
+          uri: ${USER_SERVICE_URL}
+          predicates:
+            - Path=/user/**
+          filters:
+            - RewritePath=/user/(?<remaining>.*), /${remaining}
+            - SetRequestHeader=X-Api-Key, ${USER_SERVICE_API_KEY}
+            - RemoveRequestHeader=Origin
+
+        - id: image-service
+          uri: ${IMAGE_SERVER}
+          predicates:
+            - Path=/image/**
+          filters:
+            - RewritePath=/image/(?<remaining>.*), /${remaining}
+            - SetRequestHeader=X-Api-Key, ${IMAGE_SERVER_API_KEY}
+            - RemoveRequestHeader=Origin
+
+        - id: generator-api
+          uri: ${GENERATOR_SERVER}
+          predicates:
+            - Path=/generator-api/**
+          filters:
+            - RewritePath=/generator-api/(?<remaining>.*), /${remaining}
+            - SetRequestHeader=X-Api-Key, ${GENERATOR_SERVER_API_KEY}
+            - SetRequestHeader=X-Subscription-Key, ${GENERATOR_SERVER_SUBSCRIPTION_KEY}
+            - RemoveRequestHeader=Origin
+
+        - id: search-engine-by-elasticsearch
+          uri: ${ELASTICSEARCH_SERVER}
+          predicates:
+            - Path=/search/**
+            - Method=GET # Restrict only GET requests
+          filters:
+            - RewritePath=/search/(?<remaining>.*), /${remaining}
+            - RemoveRequestHeader=Origin
+            - SetRequestHeader=X-Api-Key, ${USER_SERVICE_API_KEY}
+
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins: ${CLIENT_SERVER}
+            allowedMethods: '*'
+            allowedHeaders: '*'
+            allowCredentials: true
+
+delay: ${DELAY_TIME}
+
+eureka:
+  client:
+    registerWithEureka : false
+    fetchRegistry : false
